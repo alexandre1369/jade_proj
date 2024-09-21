@@ -3,6 +3,7 @@ import jade.core.Runtime;
 import jade.util.ExtendedProperties;
 import jade.wrapper.AgentContainer;
 import jade.util.leap.Properties;
+import jade.wrapper.AgentController;
 import jade.wrapper.ControllerException;
 
 /**
@@ -19,6 +20,17 @@ public class MainContainer {
             ProfileImpl pc = new ProfileImpl(p);
             AgentContainer container = rt.createMainContainer(pc);
             container.start();
+
+
+            AgentController shipAgent = container.createNewAgent("Vaisseau", "Agents.ShipAgent", null);
+            shipAgent.start();
+
+            for (int i = 0; i < 5; i++) { // Crée 5 robots
+                AgentController robotAgent = container.createNewAgent("Robot" + i, "Agents.RobotAgent", null);
+                robotAgent.start();
+            }
+
+
         } catch (ControllerException e) {
             e.printStackTrace();
         }
