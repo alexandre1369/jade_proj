@@ -1,26 +1,38 @@
+package Contexte;
+
+
+
 public class RareStone {
-    private int x;
-    private int y;
+    String type;
+    int valeur;
 
-    public RareStone(int x, int y) {
-        this.x = x;
-        this.y = y;
+    public RareStone() {
+        //de moins en moins de chance d'avoir une pierre rare
+        double random = Math.random();
+        if (random < 0.1) {
+            this.type = "Diamant";
+            this.valeur = 100;
+        } else if (random < 0.2) {
+            this.type = "Rubis";
+            this.valeur = 50;
+        } else if (random < 0.3) {
+            this.type = "Emeraude";
+            this.valeur = 30;
+        } else if (random < 0.4) {
+            this.type = "Saphir";
+            this.valeur = 20;
+        } else {
+            this.type = "Pierre précieuse";
+            this.valeur = 10;
+        }
     }
 
-    public int getX() {
-        return x;
+    public String getType() {
+        return type;
     }
 
-    public int getY() {
-        return y;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public void setY(int y) {
-        this.y = y;
+    public int getValeur() {
+        return valeur;
     }
 
 

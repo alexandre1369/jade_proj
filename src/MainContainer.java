@@ -1,3 +1,4 @@
+import Contexte.TerrainManager;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.util.ExtendedProperties;
@@ -21,12 +22,15 @@ public class MainContainer {
             AgentContainer container = rt.createMainContainer(pc);
             container.start();
 
+            // Création du terrain
+            TerrainManager terrainManager = new TerrainManager(10, 10);
 
-            AgentController shipAgent = container.createNewAgent("Vaisseau", "Agents.ShipAgent", null);
+
+            AgentController shipAgent = container.createNewAgent("Vaisseau", "Agents.ShipAgent", new Object[]{0, 0});
             shipAgent.start();
 
-            for (int i = 0; i < 5; i++) { // Crée 5 robots
-                AgentController robotAgent = container.createNewAgent("Robot" + i, "Agents.RobotAgent", null);
+            for (int i = 0; i < 1; i++) { // Crée 5 robots
+                AgentController robotAgent = container.createNewAgent("Robot" + i, "Agents.RobotAgent", new Object[]{0, 0, 25, 25, terrainManager});
                 robotAgent.start();
             }
 
