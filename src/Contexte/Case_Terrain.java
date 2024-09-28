@@ -18,6 +18,7 @@ public class Case_Terrain {
             //nombre de pierre entre 10-20
             this.nb_pierre = (int) (Math.random() * 10) + 10;
         }
+
         if (this.difficulte.equals("facile")) {
             this.temps_de_parcourt = 1;
         } else if (this.difficulte.equals("moyen")) {
@@ -28,6 +29,7 @@ public class Case_Terrain {
             this.temps_de_parcourt = 1000;
         }
         this.temps_de_exploration = 2*temps_de_parcourt;
+
     }
 
     public Case_Terrain(Case_Terrain a) {

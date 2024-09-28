@@ -11,6 +11,14 @@ public class ShipAgent extends Agent {
     int valeur_cailloux;
     int robot_abrite;
 
+    public ShipAgent(int x, int y, int nb_robot) {
+        this.x = x;
+        this.y = y;
+        this.nb_robot = nb_robot;
+        this.nb_cailloux = 0;
+        this.valeur_cailloux = 0;
+        this.robot_abrite = 0;
+    }
     @Override
     protected void setup() {
         Object[] args = getArguments();
@@ -36,6 +44,14 @@ public class ShipAgent extends Agent {
 
     public void go_to_work(){
         this.robot_abrite = 0;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
     }
 
     private class SignalBehaviour extends TickerBehaviour {
