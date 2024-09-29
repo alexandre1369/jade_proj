@@ -79,6 +79,10 @@ public class RobotAgent extends Agent {
     }
 
     public void explorer_case(Case_Terrain case_actuelle){
+        if (case_actuelle.isReveler()){
+            System.out.println("Case déjà visitée");
+            return;
+        }
         int temps_de_exploration = case_actuelle.getTemps_de_exploration();
         long currentTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - currentTime < temps_de_exploration * 1000){
@@ -185,16 +189,45 @@ public class RobotAgent extends Agent {
         return case_disponible(x, y) && !case_visitee(x, y);
     }
 
+    public boolean case_visitee_et_pierre(int x, int y){
+        return case_visitee(x, y) && terrainManager.getCase(x, y).getNb_pierre() > 0;
+    }
+
+    public List<Coordonnee> find_good_case_near(){
+        List<Coordonnee> cases_dispo = new ArrayList<>();
+        for (int i = -1; i < 2; i++){
+            for (int j = -1; j < 2; j++){
+                if (case_disponible(this.x + i, this.y + j) && (!case_visitee(this.x + i, this.y + j) || case_visitee_et_pierre(this.x + i, this.y + j))){
+                    if (case_visitee_et_pierre(this.x + i, this.y + j)){
+                        cases_dispo = new ArrayList<>();
+                        cases_dispo.add(new Coordonnee(i, j));
+                        return cases_dispo;
+                    } else {
+                        cases_dispo.add(new Coordonnee(i, j));
+                    }
+                }
+            }
+        }
+        return cases_dispo;
+    }
+
     public void deplacement(){
-        int x;
-        int y;
-        do {
-            x = (int) (Math.random() * 3) - 1;
-            y = (int) (Math.random() * 3) - 1;
-            System.out.println("Déplacement vers la case 3 " + (this.x + x) + " " + (this.y + y));
-        }while((x == 0 && y == 0) || !case_dispo_et_pas_visitee(this.x + x, this.y + y));
-        System.out.println("dep " + x + " " + y);
-        deplacement(x, y);
+        List<Coordonnee> cases_dispo = find_good_case_near();
+        if (cases_dispo.isEmpty()){
+            System.out.println("Pas de case disponible");
+            int x = 0;
+            int y = 0;
+            do {
+                x = (int) (Math.random() * 3) - 1;
+                y = (int) (Math.random() * 3) - 1;
+            }while(!case_disponible(this.x + x, this.y + y));
+            System.out.println("dep 0 " + x + " " + y);
+            deplacement(x, y);
+        } else {
+            Coordonnee coordonnee = cases_dispo.get((int) (Math.random() * cases_dispo.size()));
+            System.out.println("dep 1 " + coordonnee.getX() + " " + coordonnee.getY());
+            deplacement(coordonnee.getX(), coordonnee.getY());
+        }
     }
 
     public int getX() {

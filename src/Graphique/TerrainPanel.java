@@ -25,6 +25,8 @@ public class TerrainPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         drawTerrain(g);
+        drawVisited(g);
+        drawShip(g);
         drawInfranchissable(g);
         draw_rock(g);
         drawRobots(g);
@@ -68,6 +70,30 @@ public class TerrainPanel extends JPanel {
         g.setColor(Color.RED);
         for (RobotAgent robot : robots) {
             g.fillOval(robot.getX() * 50 + 10, robot.getY() * 50 + 10, 30, 30); // Dessiner le robot
+        }
+    }
+
+    private void drawVisited(Graphics g) {
+        // Dessiner les cases visitées
+        g.setColor(Color.GREEN);
+        for (int i = 0; i < terrainWidth; i++) {
+            for (int j = 0; j < terrainHeight; j++) {
+                if (terrainManager.getCase(i, j).isReveler()) {
+                    g.fillRect(i * 50, j * 50, 50, 50); // Dessiner la case visitée
+                }
+            }
+        }
+    }
+
+    private void drawShip(Graphics g) {
+        // Dessiner le vaisseau
+        g.setColor(Color.BLUE);
+        for (int i = 0; i < terrainWidth; i++) {
+            for (int j = 0; j < terrainHeight; j++) {
+                if (i == terrainManager.getX_ship() && j == terrainManager.getY_ship()) {
+                    g.fillRect(i * 50, j * 50, 50, 50); // Dessiner le vaisseau
+                }
+            }
         }
     }
 

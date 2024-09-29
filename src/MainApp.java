@@ -116,7 +116,7 @@ public class MainApp extends JFrame {
         // Méthode main pour lancer l'application
     public static void main(String[] args) {
         // Exemple de création du terrain et des robots
-        TerrainManager terrainManager = new TerrainManager(100, 100);
+        TerrainManager terrainManager = new TerrainManager(100, 100,50,50);
         List<RobotAgent> robots = new ArrayList<>();
         ShipAgent vaisseau = new ShipAgent(25, 25, 1);
         robots.add(new RobotAgent(25, 25, 25, 25, terrainManager,0));

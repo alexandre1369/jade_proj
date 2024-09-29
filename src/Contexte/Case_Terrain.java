@@ -13,7 +13,7 @@ public class Case_Terrain {
         String[] difficultes = {"facile", "moyen", "difficile","inaccessible"};
         this.difficulte = difficultes[(int) (Math.random() * 4)];
         // 1 chance sur 10 d'avoir une pierre rare
-        if (Math.random() < 0.1) {
+        if (Math.random() < 0.1 && !this.difficulte.equals("inaccessible")) {
             this.pierre = new RareStone();
             //nombre de pierre entre 10-20
             this.nb_pierre = (int) (Math.random() * 10) + 10;
@@ -27,6 +27,7 @@ public class Case_Terrain {
             this.temps_de_parcourt = 3;
         } else {
             this.temps_de_parcourt = 1000;
+            this.reveler = true;
         }
         this.temps_de_exploration = 2*temps_de_parcourt;
 
@@ -38,6 +39,14 @@ public class Case_Terrain {
         this.nb_pierre = a.nb_pierre;
         this.temps_de_parcourt = a.temps_de_parcourt;
         this.temps_de_exploration = a.temps_de_exploration;
+    }
+
+    public Case_Terrain(boolean ship){
+        this.difficulte = "facie";
+        this.temps_de_parcourt = 1;
+        this.temps_de_exploration = 0;
+        this.reveler = true;
+        this.nb_pierre = 0;
     }
 
     public void reveler(){
@@ -58,6 +67,9 @@ public class Case_Terrain {
 
     public void retirerPierre(){
         this.nb_pierre--;
+        if (this.nb_pierre == 0){
+            this.pierre = null;
+        }
     }
 
     public int getNb_pierre() {

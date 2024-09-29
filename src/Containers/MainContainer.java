@@ -24,7 +24,7 @@ public class MainContainer {
 
     public MainContainer() {
         robots = new ArrayList<>();
-        terrainManager = new TerrainManager(5, 5);
+        terrainManager = new TerrainManager(5, 5, 2, 2);
     }
 
     // Méthode pour obtenir l'instance unique de MainContainer
@@ -67,7 +67,7 @@ public class MainContainer {
             container.start();
 
             // Créer le terrain
-            terrainManager = new TerrainManager(5, 5);
+            terrainManager = new TerrainManager(5, 5, 2, 2);
 
             // Créer les robots et les ajouter à la liste pour la visualisation
             for (int i = 0; i < 1; i++) { // Crée 5 robots
