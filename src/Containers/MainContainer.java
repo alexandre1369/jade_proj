@@ -1,6 +1,8 @@
 package Containers;
 import Agents.RobotAgent;
 import Agents.RobotAgentFactory;
+import Agents.SpaceShipAgent;
+import Agents.ShipAgentFactory;
 import Contexte.Coordonnee;
 import Contexte.TerrainManager;
 import Graphique.TerrainPanel;
@@ -12,17 +14,14 @@ import jade.wrapper.ControllerException;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 public class MainContainer {
     private static MainContainer instance; // Instance unique de MainContainer
     private AgentContainer container; // Référence au conteneur JADE
     private TerrainPanel terrainPanel; // Panneau de visualisation
-    private RobotAgent[] robots; // Liste des robots
+    private final RobotAgent[] robots; // Liste des robots
     private TerrainManager terrainManager; // Gestionnaire de terrain
-    private int nb_robot = 5;
+    private final int nb_robot = 5;
 
     public MainContainer() {
         robots = new RobotAgent[this.nb_robot]; // Crée une liste de 5 robots
@@ -70,6 +69,10 @@ public class MainContainer {
 
             // Créer le terrain
             terrainManager = new TerrainManager(100, 100, 50, 50);
+
+            SpaceShipAgent vaisseau = new SpaceShipAgent(50, 50, this.nb_robot);
+            ShipAgentFactory.createShipAgent(container, "Vaisseau", vaisseau);
+
 
             // Créer les robots et les ajouter à la liste pour la visualisation
             for (int i = 0; i < this.nb_robot; i++) { // Crée 5 robots

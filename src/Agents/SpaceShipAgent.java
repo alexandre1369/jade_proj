@@ -1,9 +1,11 @@
 package Agents;
 
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.TickerBehaviour;
+import jade.lang.acl.ACLMessage;
 
-public class ShipAgent extends Agent {
+public class SpaceShipAgent extends Agent {
     int x;
     int y;
     int nb_robot;
@@ -11,7 +13,7 @@ public class ShipAgent extends Agent {
     int valeur_cailloux;
     int robot_abrite;
 
-    public ShipAgent(int x, int y, int nb_robot) {
+    public SpaceShipAgent(int x, int y, int nb_robot) {
         this.x = x;
         this.y = y;
         this.nb_robot = nb_robot;
@@ -19,6 +21,7 @@ public class ShipAgent extends Agent {
         this.valeur_cailloux = 0;
         this.robot_abrite = 0;
     }
+
     @Override
     protected void setup() {
         Object[] args = getArguments();
@@ -65,4 +68,16 @@ public class ShipAgent extends Agent {
             // Émettre le signal pour guider les robots
         }
     }
+
+    private class ReceiveBehaviour extends CyclicBehaviour {
+        public void action() {
+            ACLMessage msg = receive();
+            if(msg != null) {
+                System.out.println("Received message from " + msg.getSender().getName());
+                System.out.println("Content: " + msg.getContent());
+            } else {
+                block();
+            }
+        }
+    };
 }

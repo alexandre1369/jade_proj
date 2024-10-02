@@ -1,8 +1,7 @@
-import Agents.ShipAgent;
+import Agents.SpaceShipAgent;
 import Contexte.TerrainManager;
 import Agents.RobotAgent;
 import Containers.MainContainer;
-import jade.wrapper.ControllerException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -115,7 +114,7 @@ public class MainApp extends JFrame {
         // Exemple de création du terrain et des robots
         TerrainManager terrainManager = new TerrainManager(100, 100,50,50);
         List<RobotAgent> robots = new ArrayList<>();
-        ShipAgent vaisseau = new ShipAgent(25, 25, 1);
+        SpaceShipAgent vaisseau = new SpaceShipAgent(25, 25, 1);
         robots.add(new RobotAgent(25, 25, 25, 25, terrainManager,0));
 
 
