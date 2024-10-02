@@ -22,8 +22,7 @@ public class RobotAgent extends Agent {
 
     TerrainManager terrainManager;
 
-    public RobotAgent() {
-    }
+    public RobotAgent() {}
 
     public RobotAgent(int x, int y, int x_vaisseau, int y_vaisseau, TerrainManager terrainManager, int id) {
         this.x = x;
@@ -39,6 +38,7 @@ public class RobotAgent extends Agent {
         this.y = a.y;
         this.x_vaisseau = a.x_vaisseau;
         this.y_vaisseau = a.y_vaisseau;
+        this.id = a.id;
         this.terrainManager = new TerrainManager(a.terrainManager);
     }
 
@@ -54,7 +54,9 @@ public class RobotAgent extends Agent {
             this.y = (int) args[1];
             this.x_vaisseau = (int) args[2];
             this.y_vaisseau = (int) args[3];
-            this.terrainManager = (TerrainManager) args[4];
+            this.terrainManager = new TerrainManager((TerrainManager) args[4]);
+
+            this.id = (int) args[5];
         }else{
             System.out.println("Erreur lors de la création du robot");
             doDelete();
@@ -79,10 +81,6 @@ public class RobotAgent extends Agent {
     }
 
     public void explorer_case(Case_Terrain case_actuelle){
-        if (case_actuelle.isReveler()){
-            System.out.println("Case déjà visitée");
-            return;
-        }
         int temps_de_exploration = case_actuelle.getTemps_de_exploration();
         long currentTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - currentTime < temps_de_exploration * 1000){
@@ -96,9 +94,6 @@ public class RobotAgent extends Agent {
         int x_actuelle = this.x;
         int y_actuelle = this.y;
         List<Coordonnee> deplacement = new ArrayList<>();
-        int i = 0;
-        System.out.println("obejctif " + x + " " + y);
-        System.out.println("position actuelle " + x_actuelle + " " + y_actuelle);
         while (x_actuelle != x || y_actuelle != y){
             Coordonnee ancienne_position = new Coordonnee(x_actuelle, y_actuelle);
             if (x_actuelle < x){
@@ -112,7 +107,6 @@ public class RobotAgent extends Agent {
                 y_actuelle--;
             }
             if (case_disponible(x_actuelle, y_actuelle)) {
-                System.out.println("Déplacement vers la case 1 " + x_actuelle + " " + y_actuelle);
                 deplacement.add(new Coordonnee(x_actuelle - ancienne_position.getX(), y_actuelle - ancienne_position.getY()));
 
             } else {
@@ -120,16 +114,13 @@ public class RobotAgent extends Agent {
                     x_actuelle += (int) (Math.random() * 3)-1;
                     y_actuelle += (int) (Math.random() * 3)-1;
                 }
-                System.out.println("Déplacement vers la case 1 " + x_actuelle + " " + y_actuelle);
                 deplacement.add(new Coordonnee(ancienne_position.getX() - x_actuelle, ancienne_position.getY() - y_actuelle));
             }
-            i++;
         }
         return deplacement;
     }
 
     public void deplacement(Coordonnee[] deplacement){
-        System.out.println("depla 1 " + deplacement.length);
         if (deplacement.length == 0 && (this.x == x_vaisseau && this.y == y_vaisseau)){
             deplacement(0,0);
         }
@@ -142,36 +133,25 @@ public class RobotAgent extends Agent {
 
     public void rentrer_au_vaisseau(){
         List<Coordonnee> deplacement = déplacement_vers_case(x_vaisseau, y_vaisseau);
-        System.out.println("calcul du chemin pour rentrer au vaisseau");
         for (Coordonnee coordonnee : deplacement){
-            System.out.println(coordonnee.getX() + " " + coordonnee.getY());
             deplacement(coordonnee.getX(), coordonnee.getY());
         }
 
     }
 
     public void deplacement(int x, int y){
-        System.out.println("Déplacement vers la case 0 " + (this.x + x) + " " + (this.y + y));
         Case_Terrain case_actuelle = terrainManager.getCase(this.x + x, this.y + y);
-        if (case_actuelle.getDifficulte().equals("inaccessible")){
-            System.out.println("Case inaccessible, déplacement impossible");
-
-        }
-
         int temps_de_parcourt = terrainManager.getCase(this.x + x, this.y + y).getTemps_de_parcourt();
         long currentTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - currentTime < temps_de_parcourt * 1000){
             // Attente du temps de parcourt
         }
         if (this.x + x == x_vaisseau && this.y + y == y_vaisseau){
-            System.out.println("Retour au vaisseau");
             deposerPierre();
-        } else {
-            System.out.println("Déplacement vers la case 2 " + (this.x + x) + " " + (this.y + y));
         }
         this.x += x;
         this.y += y;
-        MainContainer.getInstance().updateVisualization(this);
+        MainContainer.getInstance().updateVisualization(new Coordonnee(this.x, this.y), this.id);
     }
 
     public boolean case_disponible(int x, int y){
@@ -214,18 +194,15 @@ public class RobotAgent extends Agent {
     public void deplacement(){
         List<Coordonnee> cases_dispo = find_good_case_near();
         if (cases_dispo.isEmpty()){
-            System.out.println("Pas de case disponible");
             int x = 0;
             int y = 0;
             do {
                 x = (int) (Math.random() * 3) - 1;
                 y = (int) (Math.random() * 3) - 1;
             }while(!case_disponible(this.x + x, this.y + y));
-            System.out.println("dep 0 " + x + " " + y);
             deplacement(x, y);
         } else {
             Coordonnee coordonnee = cases_dispo.get((int) (Math.random() * cases_dispo.size()));
-            System.out.println("dep 1 " + coordonnee.getX() + " " + coordonnee.getY());
             deplacement(coordonnee.getX(), coordonnee.getY());
         }
     }
@@ -258,6 +235,14 @@ public class RobotAgent extends Agent {
                 deplacement();
             }
         }
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
     }
 
 

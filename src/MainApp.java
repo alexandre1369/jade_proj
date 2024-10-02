@@ -107,9 +107,6 @@ public class MainApp extends JFrame {
     }
 
     private void updateRobots() {
-        for (RobotAgent robot : robots) {
-            System.out.println("Robot " + robot.getLocalName() + " en position " + robot.getX() + " " + robot.getY());
-        }
         repaint();
     }
 

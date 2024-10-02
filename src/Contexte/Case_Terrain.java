@@ -11,7 +11,18 @@ public class Case_Terrain {
 
     public Case_Terrain() {
         String[] difficultes = {"facile", "moyen", "difficile","inaccessible"};
-        this.difficulte = difficultes[(int) (Math.random() * 4)];
+        //diificulter facile a 40%, moyen a 30%, difficile a 20%, inaccessible a 10%
+        int index = (int) (Math.random() * 100);
+        if (index < 40) {
+            this.difficulte = difficultes[0];
+        } else if (index < 70) {
+            this.difficulte = difficultes[1];
+        } else if (index < 90) {
+            this.difficulte = difficultes[2];
+        } else {
+            this.difficulte = difficultes[3];
+        }
+
         // 1 chance sur 10 d'avoir une pierre rare
         if (Math.random() < 0.1 && !this.difficulte.equals("inaccessible")) {
             this.pierre = new RareStone();

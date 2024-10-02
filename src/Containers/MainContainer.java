@@ -1,6 +1,7 @@
 package Containers;
 import Agents.RobotAgent;
 import Agents.RobotAgentFactory;
+import Contexte.Coordonnee;
 import Contexte.TerrainManager;
 import Graphique.TerrainPanel;
 import jade.core.ProfileImpl;
@@ -19,12 +20,13 @@ public class MainContainer {
     private static MainContainer instance; // Instance unique de MainContainer
     private AgentContainer container; // Référence au conteneur JADE
     private TerrainPanel terrainPanel; // Panneau de visualisation
-    private List<RobotAgent> robots; // Liste des robots
+    private RobotAgent[] robots; // Liste des robots
     private TerrainManager terrainManager; // Gestionnaire de terrain
+    private int nb_robot = 5;
 
     public MainContainer() {
-        robots = new ArrayList<>();
-        terrainManager = new TerrainManager(5, 5, 2, 2);
+        robots = new RobotAgent[this.nb_robot]; // Crée une liste de 5 robots
+        terrainManager = new TerrainManager(100, 100, 50, 50);
     }
 
     // Méthode pour obtenir l'instance unique de MainContainer
@@ -67,12 +69,12 @@ public class MainContainer {
             container.start();
 
             // Créer le terrain
-            terrainManager = new TerrainManager(5, 5, 2, 2);
+            terrainManager = new TerrainManager(100, 100, 50, 50);
 
             // Créer les robots et les ajouter à la liste pour la visualisation
-            for (int i = 0; i < 1; i++) { // Crée 5 robots
-                RobotAgent robot = new RobotAgent(2, 2, 2, 2, terrainManager,i);
-                robots.add(robot);
+            for (int i = 0; i < this.nb_robot; i++) { // Crée 5 robots
+                RobotAgent robot = new RobotAgent(50, 50, 50, 50, terrainManager,i);
+                robots[i] = robot;
                 RobotAgentFactory.createRobotAgent(container, "Robot" + i, robot);
             }
 
@@ -85,13 +87,9 @@ public class MainContainer {
         }
     }
 
-    public void updateVisualization(RobotAgent robot) {
-        for (int i = 0; i < robots.size(); i++) {
-            if (robots.get(i).getId() == robot.getId()) {
-                robots.set(i, robot);
-                break;
-            }
-        }
+    public void updateVisualization(Coordonnee coordonnee, int id) {
+        robots[id].setX(coordonnee.getX());
+        robots[id].setY(coordonnee.getY());
         terrainPanel.updateRobots(robots);
     }
 
