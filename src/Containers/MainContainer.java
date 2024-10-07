@@ -21,7 +21,7 @@ public class MainContainer {
     private TerrainPanel terrainPanel; // Panneau de visualisation
     private final RobotAgent[] robots; // Liste des robots
     private TerrainManager terrainManager; // Gestionnaire de terrain
-    private final int nb_robot = 5;
+    private final int nb_robot = 1;
 
     public MainContainer() {
         robots = new RobotAgent[this.nb_robot]; // Crée une liste de 5 robots

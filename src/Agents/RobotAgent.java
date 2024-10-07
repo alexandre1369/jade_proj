@@ -22,7 +22,8 @@ public class RobotAgent extends Agent {
 
     TerrainManager terrainManager;
 
-    public RobotAgent() {}
+    public RobotAgent() {
+    }
 
     public RobotAgent(int x, int y, int x_vaisseau, int y_vaisseau, TerrainManager terrainManager, int id) {
         this.x = x;
@@ -43,7 +44,6 @@ public class RobotAgent extends Agent {
     }
 
 
-
     @Override
     protected void setup() {
         this.poid_max = 5;
@@ -57,7 +57,7 @@ public class RobotAgent extends Agent {
             this.terrainManager = new TerrainManager((TerrainManager) args[4]);
 
             this.id = (int) args[5];
-        }else{
+        } else {
             System.out.println("Erreur lors de la création du robot");
             doDelete();
         }
@@ -71,7 +71,7 @@ public class RobotAgent extends Agent {
         valeur_transportee += valeur;
     }
 
-    public void deposerPierre(){
+    public void deposerPierre() {
         // Déposer les pierres au vaisseau
         // TODO : Envoyer un message au vaisseau pour déposer les pierres
         System.out.println("Dépôt des pierres au vaisseau");
@@ -80,105 +80,143 @@ public class RobotAgent extends Agent {
 
     }
 
-    public void explorer_case(Case_Terrain case_actuelle){
+    public void explorer_case(Case_Terrain case_actuelle) {
         int temps_de_exploration = case_actuelle.getTemps_de_exploration();
         long currentTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - currentTime < temps_de_exploration * 1000){
+        while (System.currentTimeMillis() - currentTime < temps_de_exploration * 1000) {
             // Attente du temps de parcourt
         }
         case_actuelle.reveler();
     }
 
-    public List<Coordonnee> déplacement_vers_case(int x, int y){
-        //TODO : Implémenter l'algorithme de déplacement
-        int x_actuelle = this.x;
-        int y_actuelle = this.y;
-        List<Coordonnee> deplacement = new ArrayList<>();
-        while (x_actuelle != x || y_actuelle != y){
-            Coordonnee ancienne_position = new Coordonnee(x_actuelle, y_actuelle);
-            if (x_actuelle < x){
-                x_actuelle++;
-            }else if (x_actuelle > x){
-                x_actuelle--;
-            }
-            if (y_actuelle < y){
-                y_actuelle++;
-            }else if (y_actuelle > y){
-                y_actuelle--;
-            }
-            if (case_disponible(x_actuelle, y_actuelle)) {
-                deplacement.add(new Coordonnee(x_actuelle - ancienne_position.getX(), y_actuelle - ancienne_position.getY()));
 
-            } else {
-                while (!case_disponible(x_actuelle, y_actuelle)){
-                    x_actuelle += (int) (Math.random() * 3)-1;
-                    y_actuelle += (int) (Math.random() * 3)-1;
+    public Coordonnee choiceTheGoodWay(Coordonnee vectorDirector, List<Coordonnee> history) {
+        double lastBestValue = Double.POSITIVE_INFINITY;
+        Coordonnee theGoodWay = null;
+        for (int i = -1; i < 2; i++) {
+            for (int j = -1; j < 2; j++) {
+                if (case_disponible(this.x + i, this.y + j)) {
+                    /* Heuristic
+                    * 1. minimise the manhattan distance between case and vectorDirector
+                    * 2. minimise the time travel to the case
+                    * 3. Bonus discover
+                    * 4. Malus for backward on previous visited case
+                    * */
+                    int heuristicDirection = Math.abs(i - vectorDirector.getX()) + Math.abs(j - vectorDirector.getY());
+                    int heuristicTime = terrainManager.getCase(this.x + i, this.y + j).getTemps_de_parcourt();
+                    int bonusDiscover = terrainManager.getCase(this.x + i, this.y + j).isReveler()? 0 : 1;
+                    int malusBackward = history.contains(new Coordonnee(this.x + i, this.y + j))? 10 : 0;
+                    double value = heuristicDirection + heuristicTime + bonusDiscover + malusBackward;
+                    if (value < lastBestValue) {
+                        lastBestValue = value;
+                        theGoodWay = new Coordonnee(i, j);
+                    }
                 }
-                deplacement.add(new Coordonnee(ancienne_position.getX() - x_actuelle, ancienne_position.getY() - y_actuelle));
             }
         }
-        return deplacement;
+        return theGoodWay;
     }
 
-    public void deplacement(Coordonnee[] deplacement){
-        if (deplacement.length == 0 && (this.x == x_vaisseau && this.y == y_vaisseau)){
-            deplacement(0,0);
+    public void goToCase(int x, int y) {
+        List<Coordonnee> history = new ArrayList<>();
+        while (this.x != x && this.y != y) {
+            System.out.println("going to case");
+            // compute vector director rounded
+            Coordonnee vectorDirector = new Coordonnee(x-this.x, y-this.y);
+            double norm = Math.sqrt(Math.pow(vectorDirector.getX(), 2) + Math.pow(vectorDirector.getY(), 2));
+            vectorDirector.setX((int) Math.round(vectorDirector.getX()/norm));
+            vectorDirector.setY((int) Math.round(vectorDirector.getY()/norm));
+            Coordonnee theGoodWay = choiceTheGoodWay(vectorDirector, history);
+            history.add(theGoodWay);
+            deplacement(theGoodWay.getX(), theGoodWay.getY());
         }
-        for (Coordonnee coordonnee : deplacement){
-            deplacement(this.x + coordonnee.getX(), this.y + coordonnee.getY());
-        }
-
     }
 
+//    public List<Coordonnee> déplacement_vers_case(int x, int y) {
+//        int x_actuelle = this.x;
+//        int y_actuelle = this.y;
+//        List<Coordonnee> deplacement = new ArrayList<>();
+//        while (x_actuelle != x || y_actuelle != y) {
+//            Coordonnee ancienne_position = new Coordonnee(x_actuelle, y_actuelle);
+//            if (x_actuelle < x) {
+//                x_actuelle++;
+//            } else if (x_actuelle > x) {
+//                x_actuelle--;
+//            }
+//            if (y_actuelle < y) {
+//                y_actuelle++;
+//            } else if (y_actuelle > y) {
+//                y_actuelle--;
+//            }
+//            if (case_disponible(x_actuelle, y_actuelle)) {
+//                deplacement.add(new Coordonnee(x_actuelle - ancienne_position.getX(), y_actuelle - ancienne_position.getY()));
+//
+//            } else {
+//                while (!case_disponible(x_actuelle, y_actuelle)) {
+//                    x_actuelle += (int) (Math.random() * 3) - 1;
+//                    y_actuelle += (int) (Math.random() * 3) - 1;
+//                }
+//                deplacement.add(new Coordonnee(ancienne_position.getX() - x_actuelle, ancienne_position.getY() - y_actuelle));
+//            }
+//        }
+//        return deplacement;
+//    }
+//
+//    public void deplacement(Coordonnee[] deplacement) {
+//        if (deplacement.length == 0 && (this.x == x_vaisseau && this.y == y_vaisseau)) {
+//            deplacement(0, 0);
+//        }
+//        for (Coordonnee coordonnee : deplacement) {
+//            deplacement(this.x + coordonnee.getX(), this.y + coordonnee.getY());
+//        }
+//
+//    }
 
-    public void rentrer_au_vaisseau(){
-        List<Coordonnee> deplacement = déplacement_vers_case(x_vaisseau, y_vaisseau);
-        for (Coordonnee coordonnee : deplacement){
-            deplacement(coordonnee.getX(), coordonnee.getY());
+
+    public void rentrer_au_vaisseau() {
+        goToCase(this.x_vaisseau, this.y_vaisseau);
+        if (this.x == x_vaisseau && this.y == y_vaisseau) {
+            deposerPierre();
         }
-
     }
 
-    public void deplacement(int x, int y){
+    public void deplacement(int x, int y) {
         Case_Terrain case_actuelle = terrainManager.getCase(this.x + x, this.y + y);
         int temps_de_parcourt = terrainManager.getCase(this.x + x, this.y + y).getTemps_de_parcourt();
         long currentTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - currentTime < temps_de_parcourt * 1000){
+        while (System.currentTimeMillis() - currentTime < temps_de_parcourt * 1000) {
             // Attente du temps de parcourt
-        }
-        if (this.x + x == x_vaisseau && this.y + y == y_vaisseau){
-            deposerPierre();
         }
         this.x += x;
         this.y += y;
         MainContainer.getInstance().updateVisualization(new Coordonnee(this.x, this.y), this.id);
     }
 
-    public boolean case_disponible(int x, int y){
-        if (x < 0 || x >= terrainManager.getTaille_x() ||  y < 0 || y >= terrainManager.getTaille_y()){
+    public boolean case_disponible(int x, int y) {
+        if (x < 0 || x >= terrainManager.getTaille_x() || y < 0 || y >= terrainManager.getTaille_y()) {
             return false;
         }
         return !(terrainManager.getCase(x, y).getDifficulte().equals("inaccessible"));
     }
 
-    public boolean case_visitee(int x, int y){
+    public boolean case_visitee(int x, int y) {
         return terrainManager.getCase(x, y).isReveler();
     }
 
-    public boolean case_dispo_et_pas_visitee(int x, int y){
+    public boolean case_dispo_et_pas_visitee(int x, int y) {
         return case_disponible(x, y) && !case_visitee(x, y);
     }
 
-    public boolean case_visitee_et_pierre(int x, int y){
+    public boolean case_visitee_et_pierre(int x, int y) {
         return case_visitee(x, y) && terrainManager.getCase(x, y).getNb_pierre() > 0;
     }
 
-    public List<Coordonnee> find_good_case_near(){
+    public List<Coordonnee> find_good_case_near() {
         List<Coordonnee> cases_dispo = new ArrayList<>();
-        for (int i = -1; i < 2; i++){
-            for (int j = -1; j < 2; j++){
-                if (case_disponible(this.x + i, this.y + j) && (!case_visitee(this.x + i, this.y + j) || case_visitee_et_pierre(this.x + i, this.y + j))){
-                    if (case_visitee_et_pierre(this.x + i, this.y + j)){
+        for (int i = -1; i < 2; i++) {
+            for (int j = -1; j < 2; j++) {
+                if (case_disponible(this.x + i, this.y + j) && (!case_visitee(this.x + i, this.y + j) || case_visitee_et_pierre(this.x + i, this.y + j))) {
+                    if (case_visitee_et_pierre(this.x + i, this.y + j)) {
                         cases_dispo = new ArrayList<>();
                         cases_dispo.add(new Coordonnee(i, j));
                         return cases_dispo;
@@ -191,15 +229,15 @@ public class RobotAgent extends Agent {
         return cases_dispo;
     }
 
-    public void deplacement(){
+    public void deplacement() {
         List<Coordonnee> cases_dispo = find_good_case_near();
-        if (cases_dispo.isEmpty()){
+        if (cases_dispo.isEmpty()) {
             int x = 0;
             int y = 0;
             do {
                 x = (int) (Math.random() * 3) - 1;
                 y = (int) (Math.random() * 3) - 1;
-            }while(!case_disponible(this.x + x, this.y + y));
+            } while (!case_disponible(this.x + x, this.y + y));
             deplacement(x, y);
         } else {
             Coordonnee coordonnee = cases_dispo.get((int) (Math.random() * cases_dispo.size()));
@@ -226,7 +264,7 @@ public class RobotAgent extends Agent {
         explorer_case(case_actuelle);
         if (case_actuelle.isReveler()) {
             if (case_actuelle.getPierre() != null) {
-                while(poid_actuel < poid_max && case_actuelle.getNb_pierre() > 0){
+                while (poid_actuel < poid_max && case_actuelle.getNb_pierre() > 0) {
                     collecterPierre(1, case_actuelle.getPierre().getValeur());
                     case_actuelle.retirerPierre();
                 }
