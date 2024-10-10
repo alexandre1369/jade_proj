@@ -2,8 +2,21 @@ package Agents;
 
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.TickerBehaviour;
+import jade.core.behaviours.Behaviour;
+import jade.domain.DFService;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+
+import Contexte.RareStone; // Assurez-vous d'importer la classe RareStone
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Base64;
 
 public class SpaceShipAgent extends Agent {
     int x;
@@ -22,6 +35,15 @@ public class SpaceShipAgent extends Agent {
         this.robot_abrite = 0;
     }
 
+    public SpaceShipAgent() {
+        this.x = 0;
+        this.y = 0;
+        this.nb_robot = 0;
+        this.nb_cailloux = 0;
+        this.valeur_cailloux = 0;
+        this.robot_abrite = 0;
+    }
+
     @Override
     protected void setup() {
         Object[] args = getArguments();
@@ -33,7 +55,26 @@ public class SpaceShipAgent extends Agent {
         this.nb_cailloux = 0;
         this.valeur_cailloux = 0;
         System.out.println("Vaisseau prêt !");
-        addBehaviour(new SignalBehaviour(this, 1000)); // Émet un signal toutes les secondes
+
+        // Enregistrement du service dans le DF
+        DFAgentDescription dfd = new DFAgentDescription();
+        dfd.setName(getAID());
+
+        // Définir le service offert par cet agent (par ex. "VaisseauService")
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType("VaisseauService");
+        sd.setName("ServiceDeCommunicationVaisseau");
+        dfd.addServices(sd);
+
+        try {
+            DFService.register(this, dfd);
+            System.out.println("Vaisseau enregistré avec le service VaisseauService");
+        } catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+
+        // Ajout du comportement personnalisé pour recevoir des messages
+        addBehaviour(new RecevoirMessageBehaviour(this));
     }
 
     public void déposerCailloux(int nb_cailloux, int valeur_cailloux) {
@@ -45,7 +86,7 @@ public class SpaceShipAgent extends Agent {
         this.robot_abrite++;
     }
 
-    public void go_to_work(){
+    public void go_to_work() {
         this.robot_abrite = 0;
     }
 
@@ -57,27 +98,40 @@ public class SpaceShipAgent extends Agent {
         return y;
     }
 
-    private class SignalBehaviour extends TickerBehaviour {
-        public SignalBehaviour(Agent a, long period) {
-            super(a, period);
+    // Comportement pour recevoir un message
+    private class RecevoirMessageBehaviour extends Behaviour {
+        public RecevoirMessageBehaviour(Agent a) {
+            super(a);
         }
 
         @Override
-        protected void onTick() {
-            System.out.println("Signal émis !");
-            // Émettre le signal pour guider les robots
-        }
-    }
-
-    private class ReceiveBehaviour extends CyclicBehaviour {
         public void action() {
-            ACLMessage msg = receive();
-            if(msg != null) {
-                System.out.println("Received message from " + msg.getSender().getName());
-                System.out.println("Content: " + msg.getContent());
+            ACLMessage messageRecu = myAgent.receive();  // Utiliser myAgent pour accéder à l'agent
+            if (messageRecu != null) {
+                // Décodage depuis Base64
+                try {
+                    byte[] data = Base64.getDecoder().decode(messageRecu.getContent().trim()); // Utiliser trim pour supprimer les espaces
+                    ByteArrayInputStream bis = new ByteArrayInputStream(data);
+                    ObjectInputStream in = new ObjectInputStream(bis);
+                    RareStone[] pierresRaresRecues = (RareStone[]) in.readObject();
+                    for (RareStone pierre : pierresRaresRecues) {
+                        System.out.println("Pierre reçue : " + pierre.getType() + " - Valeur : " + pierre.getValeur());
+                    }
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Erreur de décodage Base64 : " + e.getMessage());
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
             } else {
+                // Pas de message disponible, on bloque le comportement jusqu'à la réception
                 block();
             }
         }
-    };
+
+
+        @Override
+        public boolean done() {
+            return false;  // Retourne false pour continuer à recevoir des messages
+        }
+    }
 }

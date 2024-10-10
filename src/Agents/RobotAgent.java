@@ -2,23 +2,37 @@ package Agents;
 
 import Contexte.Case_Terrain;
 import Contexte.Coordonnee;
+import Contexte.RareStone;
 import Contexte.TerrainManager;
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import Containers.MainContainer;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.domain.DFService;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class RobotAgent extends Agent {
     int id;
     int poid_max;
     int poid_actuel;
+    RareStone[] pierresRares = new RareStone[5];
     int x;
     int y;
     int x_vaisseau;
     int y_vaisseau;
     int valeur_transportee;
+    AID vaisseauAID;
 
     TerrainManager terrainManager;
 
@@ -62,22 +76,70 @@ public class RobotAgent extends Agent {
             doDelete();
         }
         System.out.println("Robot " + getLocalName() + " prêt !");
+        // Ajouter un comportement pour rechercher le vaisseau et lui envoyer un message
+        addBehaviour(new OneShotBehaviour() {
+            @Override
+            public void action() {
+                vaisseauAID = rechercherVaisseau();
+                if (vaisseauAID != null) {
+                    System.out.println("envoi du message");
+                    envoyerMessage(RobotAgent.this, vaisseauAID, "Bonjour Vaisseau !");
+                } else {
+                    System.out.println("Aucun vaisseau trouvé !");
+                }
+            }
+        });
         addBehaviour(new SearchBehaviour());
     }
 
     public void collecterPierre(int poid, int valeur) {
         System.out.println("Pierre collectée");
+        pierresRares[poid_actuel] = new RareStone(valeur);
         poid_actuel += poid;
         valeur_transportee += valeur;
+
     }
 
     public void deposerPierre() {
         // Déposer les pierres au vaisseau
         // TODO : Envoyer un message au vaisseau pour déposer les pierres
+        envoyerTableau(pierresRares);
         System.out.println("Dépôt des pierres au vaisseau");
         poid_actuel = 0;
         valeur_transportee = 0;
 
+    }
+
+    // Fonction pour rechercher l'agent Vaisseau dans le DF
+    private AID rechercherVaisseau() {
+        AID vaisseauAID = null;
+        try {
+            // Définir une description pour rechercher un service
+            DFAgentDescription dfd = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            sd.setType("VaisseauService");  // Type du service recherché
+            dfd.addServices(sd);
+
+            // Recherche dans le DF
+            DFAgentDescription[] result = DFService.search(this, dfd);
+            if (result.length > 0) {
+                vaisseauAID = result[0].getName();  // Récupère l'AID du premier résultat
+                System.out.println("Vaisseau trouvé : " + vaisseauAID.getLocalName());
+            }
+        } catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+        return vaisseauAID;
+    }
+
+
+    // Fonction pour envoyer un message à un agent avec un AID spécifique
+    private void envoyerMessage(Agent monAgent, AID destinataire, String contenu) {
+        ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+        message.addReceiver(destinataire);
+        message.setContent(contenu);
+        monAgent.send(message);
+        System.out.println("Message envoyé à " + destinataire.getLocalName() + " : " + contenu);
     }
 
     public void explorer_case(Case_Terrain case_actuelle) {
@@ -189,6 +251,7 @@ public class RobotAgent extends Agent {
         }
         this.x += x;
         this.y += y;
+        System.out.println("Déplacement du robot " + this.id + " en " + x + " " + y);
         MainContainer.getInstance().updateVisualization(new Coordonnee(this.x, this.y), this.id);
     }
 
@@ -300,4 +363,28 @@ public class RobotAgent extends Agent {
             // Retourner au vaisseau après avoir trouvé des pierres
         }
     }
+
+    private void envoyerTableau(RareStone[] pierresRares) {
+        try {
+            // Sérialisation du tableau d'objets
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream out = new ObjectOutputStream(bos);
+            out.writeObject(pierresRares);
+            out.flush();
+            byte[] data = bos.toByteArray();
+
+            // Encodage en Base64
+            String encodedData = Base64.getEncoder().encodeToString(data);
+
+            // Création du message
+            ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+            message.setContent(encodedData); // Utiliser la chaîne encodée
+            message.addReceiver(vaisseauAID);
+            send(message);
+            System.out.println("Tableau de pierres rares envoyé.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
