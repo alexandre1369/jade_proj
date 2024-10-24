@@ -76,6 +76,26 @@ public class RobotAgent extends Agent {
             doDelete();
         }
         System.out.println("Robot " + getLocalName() + " prêt !");
+
+        // Enregistrement du service dans le DF
+        DFAgentDescription dfd = new DFAgentDescription();
+        dfd.setName(getAID());
+
+        // Définir le service offert par cet agent (par ex. "VaisseauService")
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType("RobotService");
+        sd.setName("ServiceDeCommunicationRobot");
+        dfd.addServices(sd);
+
+        try {
+            DFService.register(this, dfd);
+            System.out.println("Robot enregistré avec le service RobotService");
+        } catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+
+
+
         // Ajouter un comportement pour rechercher le vaisseau et lui envoyer un message
         addBehaviour(new OneShotBehaviour() {
             @Override

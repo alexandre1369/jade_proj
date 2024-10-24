@@ -1,5 +1,6 @@
 package Agents;
 
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.Behaviour;
@@ -118,6 +119,7 @@ public class SpaceShipAgent extends Agent {
                         System.out.println("Pierre reçue : " + pierre.getType() + " - Valeur : " + pierre.getValeur());
                         déposerCailloux(pierre);
                     }
+                    rechercherRobots(); //TODO: a retirer juste pour tester
                 } catch (IllegalArgumentException e) {
                     System.err.println("Erreur de décodage Base64 : " + e.getMessage());
                 } catch (IOException | ClassNotFoundException e) {
@@ -127,6 +129,25 @@ public class SpaceShipAgent extends Agent {
                 // Pas de message disponible, on bloque le comportement jusqu'à la réception
                 block();
             }
+        }
+
+        private AID[] rechercherRobots() {
+            DFAgentDescription template = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            sd.setType("RobotService");
+            template.addServices(sd);
+            try {
+                DFAgentDescription[] result = DFService.search(myAgent, template);
+                AID[] robots = new AID[result.length];
+                for (int i = 0; i < result.length; ++i) {
+                    robots[i] = result[i].getName();
+                    System.out.println("Robot trouvé : " + robots[i].getName());
+                }
+                return robots;
+            } catch (FIPAException fe) {
+                fe.printStackTrace();
+            }
+            return null;
         }
 
 
