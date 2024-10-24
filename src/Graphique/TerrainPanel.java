@@ -15,11 +15,16 @@ public class TerrainPanel extends JPanel {
     private int taille_case = 10;
 
     public TerrainPanel(RobotAgent[] robots, int width, int height, TerrainManager te) {
+        this(robots, width, height, te, 10); // Appel du constructeur avec taille_case par défaut
+    }
+
+    public TerrainPanel(RobotAgent[] robots, int width, int height, TerrainManager te,int taille_case) {
         this.robots = robots;
         this.terrainWidth = width;
         this.terrainHeight = height;
         this.terrainManager = te;
         setPreferredSize(new Dimension(terrainWidth * taille_case, terrainHeight * taille_case)); // taille_case pixels par case
+        this.taille_case = taille_case;
     }
 
     @Override
@@ -70,7 +75,7 @@ public class TerrainPanel extends JPanel {
     private void drawRobots(Graphics g) {
         g.setColor(Color.RED);
         for (RobotAgent robot : robots) {
-            g.fillOval(robot.getX() * taille_case, robot.getY() * taille_case, 10, 10); // Dessiner le robot
+            g.fillOval(robot.getX() * taille_case, robot.getY() * taille_case, taille_case, taille_case); // Dessiner le robot
         }
     }
 

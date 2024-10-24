@@ -22,10 +22,13 @@ public class MainContainer {
     private final RobotAgent[] robots; // Liste des robots
     private TerrainManager terrainManager; // Gestionnaire de terrain
     private final int nb_robot = 1;
+    private Coordonnee position_vaisseau;
+    private int taille_terrain = 10; ;
 
     public MainContainer() {
         robots = new RobotAgent[this.nb_robot]; // Crée une liste de 5 robots
-        terrainManager = new TerrainManager(100, 100, 50, 50);
+        position_vaisseau = new Coordonnee(taille_terrain/2, taille_terrain/2);
+        terrainManager = new TerrainManager(taille_terrain, taille_terrain, position_vaisseau.getX(), position_vaisseau.getY());
     }
 
     // Méthode pour obtenir l'instance unique de MainContainer
@@ -50,7 +53,7 @@ public class MainContainer {
         frame.setLayout(new BorderLayout());
 
         // Initialiser le panneau de terrain
-        terrainPanel = new TerrainPanel(robots, terrainManager.getTaille_x(), terrainManager.getTaille_y(), terrainManager);
+        terrainPanel = new TerrainPanel(robots, terrainManager.getTaille_x(), terrainManager.getTaille_y(), terrainManager,20);
         frame.add(terrainPanel, BorderLayout.CENTER);
 
         frame.pack();
@@ -68,15 +71,15 @@ public class MainContainer {
             container.start();
 
             // Créer le terrain
-            terrainManager = new TerrainManager(100, 100, 50, 50);
+            terrainManager = new TerrainManager(taille_terrain, taille_terrain, position_vaisseau.getX(), position_vaisseau.getY());
 
-            SpaceShipAgent vaisseau = new SpaceShipAgent(50, 50, this.nb_robot);
+            SpaceShipAgent vaisseau = new SpaceShipAgent(position_vaisseau.getX(), position_vaisseau.getY(), nb_robot);
             ShipAgentFactory.createShipAgent(container, "Vaisseau", vaisseau);
 
 
             // Créer les robots et les ajouter à la liste pour la visualisation
             for (int i = 0; i < this.nb_robot; i++) { // Crée 5 robots
-                RobotAgent robot = new RobotAgent(50, 50, 50, 50, terrainManager,i);
+                RobotAgent robot = new RobotAgent(position_vaisseau.getX(), position_vaisseau.getY(), position_vaisseau.getX(), position_vaisseau.getY(),terrainManager, i);
                 robots[i] = robot;
                 RobotAgentFactory.createRobotAgent(container, "Robot" + i, robot);
             }
