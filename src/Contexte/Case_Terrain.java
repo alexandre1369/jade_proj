@@ -24,7 +24,7 @@ public class Case_Terrain {
         }
 
         // 1 chance sur 10 d'avoir une pierre rare
-        if (Math.random() < 0.1 && !this.difficulte.equals("inaccessible")) {
+        if (Math.random() < 0.5 && !this.difficulte.equals("inaccessible")) { //TODO: change to 0.1
             this.pierre = new RareStone();
             //nombre de pierre entre 10-20
             this.nb_pierre = (int) (Math.random() * 10) + 10;

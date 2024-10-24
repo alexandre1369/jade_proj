@@ -23,7 +23,7 @@ public class MainContainer {
     private TerrainManager terrainManager; // Gestionnaire de terrain
     private final int nb_robot = 1;
     private Coordonnee position_vaisseau;
-    private int taille_terrain = 10; ;
+    private int taille_terrain = 5; ;
 
     public MainContainer() {
         robots = new RobotAgent[this.nb_robot]; // Crée une liste de 5 robots
@@ -53,7 +53,7 @@ public class MainContainer {
         frame.setLayout(new BorderLayout());
 
         // Initialiser le panneau de terrain
-        terrainPanel = new TerrainPanel(robots, terrainManager.getTaille_x(), terrainManager.getTaille_y(), terrainManager,20);
+        terrainPanel = new TerrainPanel(robots, terrainManager.getTaille_x(), terrainManager.getTaille_y(), terrainManager,50);
         frame.add(terrainPanel, BorderLayout.CENTER);
 
         frame.pack();

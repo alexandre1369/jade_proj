@@ -379,6 +379,13 @@ public class RobotAgent extends Agent {
             // Création du message
             ACLMessage message = new ACLMessage(ACLMessage.INFORM);
             message.setContent(encodedData); // Utiliser la chaîne encodée
+            if (vaisseauAID == null) {
+                vaisseauAID = rechercherVaisseau();
+                if (vaisseauAID == null) {
+                    System.out.println("Aucun vaisseau trouvé !");
+                    return;
+                }
+            }
             message.addReceiver(vaisseauAID);
             send(message);
             System.out.println("Tableau de pierres rares envoyé.");

@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.Base64;
 
 public class SpaceShipAgent extends Agent {
@@ -23,7 +24,7 @@ public class SpaceShipAgent extends Agent {
     int y;
     int nb_robot;
     int nb_cailloux;
-    int valeur_cailloux;
+    ArrayList<RareStone> Stockage = new ArrayList<RareStone>();
     int robot_abrite;
 
     public SpaceShipAgent(int x, int y, int nb_robot) {
@@ -31,7 +32,6 @@ public class SpaceShipAgent extends Agent {
         this.y = y;
         this.nb_robot = nb_robot;
         this.nb_cailloux = 0;
-        this.valeur_cailloux = 0;
         this.robot_abrite = 0;
     }
 
@@ -40,7 +40,6 @@ public class SpaceShipAgent extends Agent {
         this.y = 0;
         this.nb_robot = 0;
         this.nb_cailloux = 0;
-        this.valeur_cailloux = 0;
         this.robot_abrite = 0;
     }
 
@@ -53,7 +52,7 @@ public class SpaceShipAgent extends Agent {
             this.nb_robot = (int) args[2];
         }
         this.nb_cailloux = 0;
-        this.valeur_cailloux = 0;
+        this.Stockage = new ArrayList<RareStone>();
         System.out.println("Vaisseau prêt !");
 
         // Enregistrement du service dans le DF
@@ -77,9 +76,9 @@ public class SpaceShipAgent extends Agent {
         addBehaviour(new RecevoirMessageBehaviour(this));
     }
 
-    public void déposerCailloux(int nb_cailloux, int valeur_cailloux) {
-        this.nb_cailloux += nb_cailloux;
-        this.valeur_cailloux += valeur_cailloux;
+    public void déposerCailloux(RareStone pierre) {
+        this.nb_cailloux += 1;
+        this.Stockage.add(pierre);
     }
 
     public void retour_au_bercailloux() {
@@ -110,12 +109,14 @@ public class SpaceShipAgent extends Agent {
             if (messageRecu != null) {
                 // Décodage depuis Base64
                 try {
+                    System.out.println("Message reçu de " + messageRecu.getSender().getName());
                     byte[] data = Base64.getDecoder().decode(messageRecu.getContent().trim()); // Utiliser trim pour supprimer les espaces
                     ByteArrayInputStream bis = new ByteArrayInputStream(data);
                     ObjectInputStream in = new ObjectInputStream(bis);
                     RareStone[] pierresRaresRecues = (RareStone[]) in.readObject();
                     for (RareStone pierre : pierresRaresRecues) {
                         System.out.println("Pierre reçue : " + pierre.getType() + " - Valeur : " + pierre.getValeur());
+                        déposerCailloux(pierre);
                     }
                 } catch (IllegalArgumentException e) {
                     System.err.println("Erreur de décodage Base64 : " + e.getMessage());
