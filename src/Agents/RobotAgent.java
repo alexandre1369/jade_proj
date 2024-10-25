@@ -1,11 +1,9 @@
 package Agents;
 
-import Contexte.Case_Terrain;
-import Contexte.Coordonnee;
-import Contexte.RareStone;
-import Contexte.TerrainManager;
+import Contexte.*;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import Containers.MainContainer;
 import jade.core.behaviours.OneShotBehaviour;
@@ -15,12 +13,8 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 public class RobotAgent extends Agent {
     int id;
@@ -32,6 +26,7 @@ public class RobotAgent extends Agent {
     int x_vaisseau;
     int y_vaisseau;
     int valeur_transportee;
+    Queue<Point_interet> list_objectif = new LinkedList<>();
     AID vaisseauAID;
 
     TerrainManager terrainManager;
@@ -69,6 +64,7 @@ public class RobotAgent extends Agent {
             this.x_vaisseau = (int) args[2];
             this.y_vaisseau = (int) args[3];
             this.terrainManager = new TerrainManager((TerrainManager) args[4]);
+            this.list_objectif = new LinkedList<>();
 
             this.id = (int) args[5];
         } else {
@@ -110,6 +106,7 @@ public class RobotAgent extends Agent {
             }
         });
         addBehaviour(new SearchBehaviour());
+        addBehaviour(new RecevoirMessageBehaviour(this));
     }
 
     public void collecterPierre(int poid, int valeur) {
@@ -150,6 +147,30 @@ public class RobotAgent extends Agent {
             fe.printStackTrace();
         }
         return vaisseauAID;
+    }
+
+    private AID[] rechecherRobots(){
+        AID[] robotsAID = null;
+        try {
+            // Définir une description pour rechercher un service
+            DFAgentDescription dfd = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            sd.setType("RobotService");  // Type du service recherché
+            dfd.addServices(sd);
+
+            // Recherche dans le DF
+            DFAgentDescription[] result = DFService.search(this, dfd);
+            if (result.length > 0) {
+                robotsAID = new AID[result.length];
+                for (int i = 0; i < result.length; i++) {
+                    robotsAID[i] = result[i].getName();
+                    System.out.println("Robot trouvé : " + robotsAID[i].getLocalName());
+                }
+            }
+        } catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+        return robotsAID;
     }
 
 
@@ -340,6 +361,16 @@ public class RobotAgent extends Agent {
         return id;
     }
 
+    public void recherche_objectif(){
+        if (!list_objectif.isEmpty()){
+            Point_interet objectif = list_objectif.poll();
+            Coordonnee coordonnee = objectif.getCoordonnee();
+            goToCase(coordonnee.getX(), coordonnee.getY());
+        }else {
+            fouiller();
+        }
+    }
+
 
     public void fouiller() {
         System.out.println("Fouille de la case " + x + " " + y);
@@ -350,6 +381,13 @@ public class RobotAgent extends Agent {
                 while (poid_actuel < poid_max && case_actuelle.getNb_pierre() > 0) {
                     collecterPierre(1, case_actuelle.getPierre().getValeur());
                     case_actuelle.retirerPierre();
+                }
+                if (case_actuelle.getNb_pierre() != 0){
+                    Point_interet objectif = new Point_interet("pierre", new Coordonnee(x, y));
+                    System.out.println("ajout de l'objectif" + objectif.getCoordonnee().getX() + " " + objectif.getCoordonnee().getY());
+                    list_objectif.add(objectif);
+                    //trouver les robots et leurs envoyer les coordonnées
+                    envoyerCooordonnee(new Coordonnee(x, y));
                 }
             } else {
                 System.out.println("Pas de pierre à cet endroit");
@@ -375,7 +413,7 @@ public class RobotAgent extends Agent {
                 rentrer_au_vaisseau();
             } else {
                 System.out.println("Recherche de pierres...");
-                fouiller();
+                recherche_objectif();
             }
 
             // Logique de recherche des pierres
@@ -414,4 +452,89 @@ public class RobotAgent extends Agent {
         }
     }
 
+    public void envoyerCooordonnee(Coordonnee coordonnee) {
+        try {
+            // Sérialisation du tableau d'objets
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream out = new ObjectOutputStream(bos);
+            out.writeObject(coordonnee);
+            out.flush();
+            byte[] data = bos.toByteArray();
+
+            // Encodage en Base64
+            String encodedData = Base64.getEncoder().encodeToString(data);
+
+            // Création du message
+            ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+            message.setContent(encodedData); // Utiliser la chaîne encodée
+            //envoyer les coordonnées aux autres robots
+            AID[] robotsAID = rechecherRobots();
+            if (robotsAID != null) {
+                for (AID robotAID : robotsAID) {
+                    if (robotAID.equals(getAID())) {
+                        continue;
+                    }
+                    ACLMessage messageRobot = new ACLMessage(ACLMessage.INFORM);
+                    messageRobot.setContent(encodedData); // Utiliser la chaîne encodée
+                    messageRobot.addReceiver(robotAID);
+                    send(messageRobot);
+                    System.out.println("Coordonnée envoyée au robot." + robotAID.getLocalName());
+                    System.out.println("Coordonnée envoyée : " + coordonnee.getX() + " " + coordonnee.getY());
+                }
+            } else {
+                System.out.println("Aucun robot trouvé !");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private class RecevoirMessageBehaviour extends Behaviour {
+
+        public RecevoirMessageBehaviour(Agent a) {
+            super(a);
+        }
+
+        @Override
+        public void action() {
+            ACLMessage messageRecu = myAgent.receive();  // Utiliser receive pour bloquer le comportement
+            if (messageRecu != null) {
+                // Décodage depuis Base64
+                try {
+                    System.out.println("Message reçu de " + messageRecu.getSender().getName());
+                    byte[] data = Base64.getDecoder().decode(messageRecu.getContent().trim()); // Utiliser trim pour supprimer les espaces
+                    ByteArrayInputStream bis = new ByteArrayInputStream(data);
+                    ObjectInputStream in = new ObjectInputStream(bis);
+                    Coordonnee coordonnee = (Coordonnee) in.readObject();
+                    System.out.println("Coordonnées reçues : " + coordonnee.getX() + " " + coordonnee.getY());
+                    Coordonnee pos = new Coordonnee(x, y);
+                    if (Coordonnee.calculeDistance(coordonnee, pos) < 5) {
+                        Point_interet objectif = new Point_interet("pierre", coordonnee);
+                        list_objectif.add(objectif);
+                    } else {
+                        System.out.println("Coordonnées trop éloignées");
+                    }
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Erreur de décodage Base64 robots : " + e.getMessage());
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                // Pas de message disponible, on bloque le comportement jusqu'à la réception
+                block();
+            }
+
+        }
+
+        @Override
+        public boolean done() {
+            return false;
+        }
+    }
+
+
+
 }
+
+

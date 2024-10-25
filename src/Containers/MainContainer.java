@@ -21,7 +21,7 @@ public class MainContainer {
     private TerrainPanel terrainPanel; // Panneau de visualisation
     private final RobotAgent[] robots; // Liste des robots
     private TerrainManager terrainManager; // Gestionnaire de terrain
-    private final int nb_robot = 1;
+    private final int nb_robot = 2;
     private Coordonnee position_vaisseau;
     private int taille_terrain = 5; ;
 

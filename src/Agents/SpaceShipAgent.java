@@ -2,7 +2,6 @@ package Agents;
 
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.Behaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -13,10 +12,8 @@ import jade.lang.acl.ACLMessage;
 import Contexte.RareStone; // Assurez-vous d'importer la classe RareStone
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Base64;
 
@@ -121,7 +118,7 @@ public class SpaceShipAgent extends Agent {
                     }
                     rechercherRobots(); //TODO: a retirer juste pour tester
                 } catch (IllegalArgumentException e) {
-                    System.err.println("Erreur de décodage Base64 : " + e.getMessage());
+                    System.err.println("Erreur de décodage Base64 ship : " + e.getMessage());
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
