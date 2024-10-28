@@ -198,7 +198,7 @@ public class RobotAgent extends Agent {
         Coordonnee theGoodWay = null;
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
-                if (case_disponible(this.x + i, this.y + j)) {
+                if (case_disponible(this.x + i, this.y + j) && (i != 0 || j != 0)) {
                     /* Heuristic
                     * 1. minimise the manhattan distance between case and vectorDirector
                     * 2. minimise the time travel to the case
@@ -222,15 +222,15 @@ public class RobotAgent extends Agent {
 
     public void goToCase(int x, int y) {
         List<Coordonnee> history = new ArrayList<>();
-        while (this.x != x && this.y != y) {
-            System.out.println("going to case");
+        while (this.x != x || this.y != y) {
+            System.out.println("going to"+x+" "+y);
             // compute vector director rounded
             Coordonnee vectorDirector = new Coordonnee(x-this.x, y-this.y);
             double norm = Math.sqrt(Math.pow(vectorDirector.getX(), 2) + Math.pow(vectorDirector.getY(), 2));
             vectorDirector.setX((int) Math.round(vectorDirector.getX()/norm));
             vectorDirector.setY((int) Math.round(vectorDirector.getY()/norm));
             Coordonnee theGoodWay = choiceTheGoodWay(vectorDirector, history);
-            history.add(theGoodWay);
+            history.add(new Coordonnee(this.x + theGoodWay.getX(), this.y + theGoodWay.getY()));
             deplacement(theGoodWay.getX(), theGoodWay.getY());
         }
     }
@@ -287,12 +287,12 @@ public class RobotAgent extends Agent {
         Case_Terrain case_actuelle = terrainManager.getCase(this.x + x, this.y + y);
         int temps_de_parcourt = terrainManager.getCase(this.x + x, this.y + y).getTemps_de_parcourt();
         long currentTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - currentTime < temps_de_parcourt * 1000) {
+        while (System.currentTimeMillis() - currentTime < temps_de_parcourt * 100) {
             // Attente du temps de parcourt
         }
         this.x += x;
         this.y += y;
-        System.out.println("Déplacement du robot " + this.id + " en " + x + " " + y);
+        System.out.println("Déplacement du robot " + this.id + " en " + this.x + " " + this.y);
         MainContainer.getInstance().updateVisualization(new Coordonnee(this.x, this.y), this.id);
     }
 

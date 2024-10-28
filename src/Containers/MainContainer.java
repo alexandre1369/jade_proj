@@ -23,7 +23,7 @@ public class MainContainer {
     private TerrainManager terrainManager; // Gestionnaire de terrain
     private final int nb_robot = 2;
     private Coordonnee position_vaisseau;
-    private int taille_terrain = 5; ;
+    private int taille_terrain = 20; ;
 
     public MainContainer() {
         robots = new RobotAgent[this.nb_robot]; // Crée une liste de 5 robots
