@@ -99,6 +99,10 @@ public class MainContainer {
         terrainPanel.updateRobots(robots);
     }
 
+    public void updateRockVisu(TerrainManager terrainManager) {
+        terrainPanel.updateTerrain(terrainManager);
+    }
+
     // Méthode pour arrêter le conteneur
     public void kill() {
         try {

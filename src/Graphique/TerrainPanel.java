@@ -31,7 +31,7 @@ public class TerrainPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         drawTerrain(g);
-        drawVisited(g);
+        // drawVisited(g);
         drawShip(g);
         drawInfranchissable(g);
         draw_rock(g);

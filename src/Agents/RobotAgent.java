@@ -280,6 +280,7 @@ public class RobotAgent extends Agent {
     public void rentrer_au_vaisseau() {
         goToCase(this.x_vaisseau, this.y_vaisseau);
         if (this.x == x_vaisseau && this.y == y_vaisseau) {
+            MainContainer.getInstance().updateRockVisu(this.terrainManager);
             deposerPierre();
         }
     }
