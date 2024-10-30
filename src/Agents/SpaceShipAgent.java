@@ -51,7 +51,7 @@ public class SpaceShipAgent extends Agent {
         }
         this.nb_cailloux = 0;
         this.Stockage = new ArrayList<RareStone>();
-        System.out.println("Vaisseau prêt !");
+        // System.out.println("Vaisseau prêt !");
 
         // Enregistrement du service dans le DF
         DFAgentDescription dfd = new DFAgentDescription();
@@ -65,7 +65,7 @@ public class SpaceShipAgent extends Agent {
 
         try {
             DFService.register(this, dfd);
-            System.out.println("Vaisseau enregistré avec le service VaisseauService");
+            // System.out.println("Vaisseau enregistré avec le service VaisseauService");
         } catch (FIPAException fe) {
             fe.printStackTrace();
         }
@@ -107,13 +107,13 @@ public class SpaceShipAgent extends Agent {
             if (messageRecu != null) {
                 // Décodage depuis Base64
                 try {
-                    System.out.println("Message reçu de " + messageRecu.getSender().getName());
+                    // System.out.println("Message reçu de " + messageRecu.getSender().getName());
                     byte[] data = Base64.getDecoder().decode(messageRecu.getContent().trim()); // Utiliser trim pour supprimer les espaces
                     ByteArrayInputStream bis = new ByteArrayInputStream(data);
                     ObjectInputStream in = new ObjectInputStream(bis);
                     RareStone[] pierresRaresRecues = (RareStone[]) in.readObject();
                     for (RareStone pierre : pierresRaresRecues) {
-                        System.out.println("Pierre reçue : " + pierre.getType() + " - Valeur : " + pierre.getValeur());
+                        // System.out.println("Pierre reçue : " + pierre.getType() + " - Valeur : " + pierre.getValeur());
                         déposerCailloux(pierre);
                     }
                     rechercherRobots(); //TODO: a retirer juste pour tester
@@ -138,7 +138,7 @@ public class SpaceShipAgent extends Agent {
                 AID[] robots = new AID[result.length];
                 for (int i = 0; i < result.length; ++i) {
                     robots[i] = result[i].getName();
-                    System.out.println("Robot trouvé : " + robots[i].getName());
+                    // System.out.println("Robot trouvé : " + robots[i].getName());
                 }
                 return robots;
             } catch (FIPAException fe) {

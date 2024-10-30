@@ -16,6 +16,8 @@ import jade.lang.acl.ACLMessage;
 import java.io.*;
 import java.util.*;
 
+import static java.lang.Math.pow;
+
 public class RobotAgent extends Agent {
     int id;
     int poid_max;
@@ -110,7 +112,7 @@ public class RobotAgent extends Agent {
     }
 
     public void collecterPierre(int poid, int valeur) {
-        System.out.println("Pierre collectée");
+        // System.out.println("Pierre collectée");
         pierresRares[poid_actuel] = new RareStone(valeur);
         poid_actuel += poid;
         valeur_transportee += valeur;
@@ -121,7 +123,7 @@ public class RobotAgent extends Agent {
         // Déposer les pierres au vaisseau
         // TODO : Envoyer un message au vaisseau pour déposer les pierres
         envoyerTableau(pierresRares);
-        System.out.println("Dépôt des pierres au vaisseau");
+        // System.out.println("Dépôt des pierres au vaisseau");
         poid_actuel = 0;
         valeur_transportee = 0;
 
@@ -164,7 +166,7 @@ public class RobotAgent extends Agent {
                 robotsAID = new AID[result.length];
                 for (int i = 0; i < result.length; i++) {
                     robotsAID[i] = result[i].getName();
-                    System.out.println("Robot trouvé : " + robotsAID[i].getLocalName());
+                    // System.out.println("Robot trouvé : " + robotsAID[i].getLocalName());
                 }
             }
         } catch (FIPAException fe) {
@@ -180,7 +182,7 @@ public class RobotAgent extends Agent {
         message.addReceiver(destinataire);
         message.setContent(contenu);
         monAgent.send(message);
-        System.out.println("Message envoyé à " + destinataire.getLocalName() + " : " + contenu);
+        // System.out.println("Message envoyé à " + destinataire.getLocalName() + " : " + contenu);
     }
 
     public void explorer_case(Case_Terrain case_actuelle) {
@@ -207,10 +209,16 @@ public class RobotAgent extends Agent {
                     * */
                     int heuristicDirection = Math.abs(i - vectorDirector.getX()) + Math.abs(j - vectorDirector.getY());
                     int heuristicTime = terrainManager.getCase(this.x + i, this.y + j).getTemps_de_parcourt();
-                    int bonusDiscover = terrainManager.getCase(this.x + i, this.y + j).isReveler()? 0 : 1;
-                    int malusBackward = history.contains(new Coordonnee(this.x + i, this.y + j))? 10 : 0;
-                    double value = heuristicDirection + heuristicTime + bonusDiscover + malusBackward;
-                    if (value < lastBestValue) {
+                    int bonusDiscover = terrainManager.getCase(this.x + i, this.y + j).isReveler()? 1 : 0;
+                    int malusBackward = 0;
+                    for (int hist = 0; hist < history.size(); hist++) {
+                        if (history.get(hist).getX() == this.x + i && history.get(hist).getY() == this.y + j) {
+                            malusBackward = 10;
+                            System.out.println("LE MALUS");
+                        }
+                    }
+                    double value = pow(heuristicDirection,2) + heuristicTime + 0.5*bonusDiscover + malusBackward;
+                    if (value < lastBestValue || (value == lastBestValue && heuristicTime <= 1)) {
                         lastBestValue = value;
                         theGoodWay = new Coordonnee(i, j);
                     }
@@ -227,7 +235,7 @@ public class RobotAgent extends Agent {
         while (this.x != x || this.y != y) {
             // compute vector director rounded
             Coordonnee vectorDirector = new Coordonnee(x-this.x, y-this.y);
-            double norm = Math.sqrt(Math.pow(vectorDirector.getX(), 2) + Math.pow(vectorDirector.getY(), 2));
+            double norm = Math.sqrt(pow(vectorDirector.getX(), 2) + pow(vectorDirector.getY(), 2));
             vectorDirector.setX((int) Math.round(vectorDirector.getX()/norm));
             vectorDirector.setY((int) Math.round(vectorDirector.getY()/norm));
             Coordonnee theGoodWay = choiceTheGoodWay(vectorDirector, history);
@@ -236,51 +244,9 @@ public class RobotAgent extends Agent {
         }
     }
 
-//    public List<Coordonnee> déplacement_vers_case(int x, int y) {
-//        int x_actuelle = this.x;
-//        int y_actuelle = this.y;
-//        List<Coordonnee> deplacement = new ArrayList<>();
-//        while (x_actuelle != x || y_actuelle != y) {
-//            Coordonnee ancienne_position = new Coordonnee(x_actuelle, y_actuelle);
-//            if (x_actuelle < x) {
-//                x_actuelle++;
-//            } else if (x_actuelle > x) {
-//                x_actuelle--;
-//            }
-//            if (y_actuelle < y) {
-//                y_actuelle++;
-//            } else if (y_actuelle > y) {
-//                y_actuelle--;
-//            }
-//            if (case_disponible(x_actuelle, y_actuelle)) {
-//                deplacement.add(new Coordonnee(x_actuelle - ancienne_position.getX(), y_actuelle - ancienne_position.getY()));
-//
-//            } else {
-//                while (!case_disponible(x_actuelle, y_actuelle)) {
-//                    x_actuelle += (int) (Math.random() * 3) - 1;
-//                    y_actuelle += (int) (Math.random() * 3) - 1;
-//                }
-//                deplacement.add(new Coordonnee(ancienne_position.getX() - x_actuelle, ancienne_position.getY() - y_actuelle));
-//            }
-//        }
-//        return deplacement;
-//    }
-//
-//    public void deplacement(Coordonnee[] deplacement) {
-//        if (deplacement.length == 0 && (this.x == x_vaisseau && this.y == y_vaisseau)) {
-//            deplacement(0, 0);
-//        }
-//        for (Coordonnee coordonnee : deplacement) {
-//            deplacement(this.x + coordonnee.getX(), this.y + coordonnee.getY());
-//        }
-//
-//    }
-
-
     public void rentrer_au_vaisseau() {
         goToCase(this.x_vaisseau, this.y_vaisseau);
         if (this.x == x_vaisseau && this.y == y_vaisseau) {
-            MainContainer.getInstance().updateRockVisu(this.terrainManager);
             deposerPierre();
         }
     }
@@ -375,7 +341,7 @@ public class RobotAgent extends Agent {
 
 
     public void fouiller() {
-        System.out.println("Fouille de la case " + x + " " + y);
+        // System.out.println("Fouille de la case " + x + " " + y);
         Case_Terrain case_actuelle = terrainManager.getCase(x, y);
         explorer_case(case_actuelle);
         if (case_actuelle.isReveler()) {
@@ -386,13 +352,14 @@ public class RobotAgent extends Agent {
                 }
                 if (case_actuelle.getNb_pierre() != 0){
                     Point_interet objectif = new Point_interet("pierre", new Coordonnee(x, y));
-                    System.out.println("ajout de l'objectif" + objectif.getCoordonnee().getX() + " " + objectif.getCoordonnee().getY());
+                    //System.out.println("ajout de l'objectif" + objectif.getCoordonnee().getX() + " " + objectif.getCoordonnee().getY());
                     list_objectif.add(objectif);
                     //trouver les robots et leurs envoyer les coordonnées
                     envoyerCooordonnee(new Coordonnee(x, y));
                 }
             } else {
-                System.out.println("Pas de pierre à cet endroit");
+                // System.out.println("Pas de pierre à cet endroit");
+                MainContainer.getInstance().updateRockVisu(new Coordonnee(this.x, this.y));
                 deplacement();
             }
         }
@@ -411,10 +378,10 @@ public class RobotAgent extends Agent {
         @Override
         public void action() {
             if (poid_actuel == poid_max) {
-                System.out.println("Retour au vaisseau");
+                // System.out.println("Retour au vaisseau");
                 rentrer_au_vaisseau();
             } else {
-                System.out.println("Recherche de pierres...");
+                // System.out.println("Recherche de pierres...");
                 recherche_objectif();
             }
 
@@ -448,7 +415,7 @@ public class RobotAgent extends Agent {
             }
             message.addReceiver(vaisseauAID);
             send(message);
-            System.out.println("Tableau de pierres rares envoyé.");
+            // System.out.println("Tableau de pierres rares envoyé.");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -480,11 +447,11 @@ public class RobotAgent extends Agent {
                     messageRobot.setContent(encodedData); // Utiliser la chaîne encodée
                     messageRobot.addReceiver(robotAID);
                     send(messageRobot);
-                    System.out.println("Coordonnée envoyée au robot." + robotAID.getLocalName());
-                    System.out.println("Coordonnée envoyée : " + coordonnee.getX() + " " + coordonnee.getY());
+                    // System.out.println("Coordonnée envoyée au robot." + robotAID.getLocalName());
+                    // System.out.println("Coordonnée envoyée : " + coordonnee.getX() + " " + coordonnee.getY());
                 }
             } else {
-                System.out.println("Aucun robot trouvé !");
+                // System.out.println("Aucun robot trouvé !");
             }
 
         } catch (IOException e) {
@@ -504,22 +471,22 @@ public class RobotAgent extends Agent {
             if (messageRecu != null) {
                 // Décodage depuis Base64
                 try {
-                    System.out.println("Message reçu de " + messageRecu.getSender().getName());
+                    // System.out.println("Message reçu de " + messageRecu.getSender().getName());
                     byte[] data = Base64.getDecoder().decode(messageRecu.getContent().trim()); // Utiliser trim pour supprimer les espaces
                     ByteArrayInputStream bis = new ByteArrayInputStream(data);
                     ObjectInputStream in = new ObjectInputStream(bis);
                     Coordonnee coordonnee = (Coordonnee) in.readObject();
-                    System.out.println("Coordonnées reçues : " + coordonnee.getX() + " " + coordonnee.getY());
+                    // System.out.println("Coordonnées reçues : " + coordonnee.getX() + " " + coordonnee.getY());
                     Coordonnee pos = new Coordonnee(x, y);
                     if (Coordonnee.calculeDistance(coordonnee, pos) < 5) {
                         Point_interet objectif = new Point_interet("pierre", coordonnee);
-                        System.out.println("ajout de l'objectif" + objectif.getCoordonnee().getX() + " " + objectif.getCoordonnee().getY());
+                        // System.out.println("ajout de l'objectif" + objectif.getCoordonnee().getX() + " " + objectif.getCoordonnee().getY());
                         //list_objectif.add(objectif);
                     } else {
-                        System.out.println("Coordonnées trop éloignées");
+                        // System.out.println("Coordonnées trop éloignées");
                     }
                 } catch (IllegalArgumentException e) {
-                    System.err.println("Erreur de décodage Base64 robots : " + e.getMessage());
+                    // System.err.println("Erreur de décodage Base64 robots : " + e.getMessage());
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }

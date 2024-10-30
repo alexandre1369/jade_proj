@@ -47,6 +47,10 @@ public class TerrainManager {
         return taille_x * taille_y;
     }
 
+    public void emptyRockOnCase(int x, int y) {
+        terrain[x][y].nb_pierre = 0;
+    }
+
     public int getTaille_x() {
         return taille_x;
     }

@@ -31,6 +31,9 @@ public class Coordonnee implements Serializable {
         return y;
     }
 
+    public boolean equals(Coordonnee c) {
+        return (this.x == c.getX() && this.y == c.getY());
+    }
 
     public static int calculeDistance(Coordonnee c1, Coordonnee c2) {
         return Math.abs(c1.getX() - c2.getX()) + Math.abs(c1.getY() - c2.getY());

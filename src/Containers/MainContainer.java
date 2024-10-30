@@ -21,7 +21,7 @@ public class MainContainer {
     private TerrainPanel terrainPanel; // Panneau de visualisation
     private final RobotAgent[] robots; // Liste des robots
     private TerrainManager terrainManager; // Gestionnaire de terrain
-    private final int nb_robot = 1;
+    private final int nb_robot = 4;
     private Coordonnee position_vaisseau;
     private int taille_terrain = 20; ;
 
@@ -99,7 +99,8 @@ public class MainContainer {
         terrainPanel.updateRobots(robots);
     }
 
-    public void updateRockVisu(TerrainManager terrainManager) {
+    public void updateRockVisu(Coordonnee coordonnee) {
+        terrainManager.emptyRockOnCase(coordonnee.getX(), coordonnee.getY());
         terrainPanel.updateTerrain(terrainManager);
     }
 
