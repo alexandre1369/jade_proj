@@ -217,13 +217,14 @@ public class RobotAgent extends Agent {
                 }
             }
         }
+        System.out.println("        lastBestValue : "+lastBestValue);
         return theGoodWay;
     }
 
     public void goToCase(int x, int y) {
         List<Coordonnee> history = new ArrayList<>();
+        System.out.println(this.id+" going to "+x+" "+y);
         while (this.x != x || this.y != y) {
-            System.out.println("going to"+x+" "+y);
             // compute vector director rounded
             Coordonnee vectorDirector = new Coordonnee(x-this.x, y-this.y);
             double norm = Math.sqrt(Math.pow(vectorDirector.getX(), 2) + Math.pow(vectorDirector.getY(), 2));
@@ -292,7 +293,7 @@ public class RobotAgent extends Agent {
         }
         this.x += x;
         this.y += y;
-        System.out.println("Déplacement du robot " + this.id + " en " + this.x + " " + this.y);
+        System.out.println("    Déplacement du robot " + this.id + " en " + this.x + " " + this.y);
         MainContainer.getInstance().updateVisualization(new Coordonnee(this.x, this.y), this.id);
     }
 
@@ -511,7 +512,8 @@ public class RobotAgent extends Agent {
                     Coordonnee pos = new Coordonnee(x, y);
                     if (Coordonnee.calculeDistance(coordonnee, pos) < 5) {
                         Point_interet objectif = new Point_interet("pierre", coordonnee);
-                        list_objectif.add(objectif);
+                        System.out.println("ajout de l'objectif" + objectif.getCoordonnee().getX() + " " + objectif.getCoordonnee().getY());
+                        //list_objectif.add(objectif);
                     } else {
                         System.out.println("Coordonnées trop éloignées");
                     }

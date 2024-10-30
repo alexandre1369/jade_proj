@@ -34,6 +34,7 @@ public class TerrainManager {
         for (int i = 0; i < taille_x; i++) {
             for (int j = 0; j < taille_y; j++) {
                 terrain[i][j] = new Case_Terrain(a.getCase(i, j));
+                terrain[i][j].nb_pierre = a.getCase(i, j).nb_pierre;
             }
         }
     }
